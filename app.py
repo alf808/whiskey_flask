@@ -154,9 +154,8 @@ def search_venues():
 def show_venue(venue_id):
   # shows the venue page with the given venue_id
   # TODO: replace with real venue data from the venues table, using venue_id
-    content = Venue.query.filter_by(id=venue_id).first()
-    data = content._asdict()
-    data['genres'] = [content['genres']]
+    data = Venue.query.filter_by(id=venue_id).first()
+
     return render_template('pages/show_venue.html', venue=data)
 
     
