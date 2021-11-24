@@ -1,8 +1,8 @@
 """empty message
 
-Revision ID: 43ea92be7fc2
-Revises: aba328a4da94
-Create Date: 2021-11-22 13:58:08.853038
+Revision ID: 82a175be5a17
+Revises: b536f1076b46
+Create Date: 2021-11-23 15:25:32.310712
 
 """
 from alembic import op
@@ -10,8 +10,8 @@ import sqlalchemy as sa
 
 
 # revision identifiers, used by Alembic.
-revision = '43ea92be7fc2'
-down_revision = 'aba328a4da94'
+revision = '82a175be5a17'
+down_revision = 'b536f1076b46'
 branch_labels = None
 depends_on = None
 
@@ -21,10 +21,12 @@ def upgrade():
     op.add_column('artists', sa.Column('website', sa.String(length=120), nullable=True))
     op.add_column('artists', sa.Column('seeking_venue', sa.Boolean(), nullable=True))
     op.add_column('artists', sa.Column('seeking_description', sa.String(length=200), nullable=True))
-    op.add_column('venues', sa.Column('genres', sa.String(length=120), nullable=True))
+    op.add_column('venues', sa.Column('genres', sa.ARRAY(sa.String()), nullable=True))
     op.add_column('venues', sa.Column('website', sa.String(length=120), nullable=True))
     op.add_column('venues', sa.Column('seeking_talent', sa.Boolean(), nullable=True))
     op.add_column('venues', sa.Column('seeking_description', sa.String(length=200), nullable=True))
+
+    op.alter_column('artists', sa.Column('genres', sa.ARRAY(sa.String()), nullable=True))
     # ### end Alembic commands ###
 
 
