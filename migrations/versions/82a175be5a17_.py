@@ -26,7 +26,7 @@ def upgrade():
     op.add_column('venues', sa.Column('seeking_talent', sa.Boolean(), nullable=True))
     op.add_column('venues', sa.Column('seeking_description', sa.String(length=200), nullable=True))
 
-    op.alter_column('artists', sa.Column('genres', sa.ARRAY(sa.String()), nullable=True))
+    op.alter_column('artists', 'genres', type_=sa.ARRAY(sa.String()), postgresql_using='genres::character varying[]')
     # ### end Alembic commands ###
 
 
