@@ -109,6 +109,7 @@ def venues():
     data = []
     content = Venue.query.distinct(Venue.city, Venue.state).all()
     if content:
+<<<<<<< HEAD
         for area in content:
             area_obj = {
                 'city': area.city,
@@ -128,6 +129,21 @@ def venues():
                 
             data.append(area_obj)
             
+=======
+        for location in content:
+<<<<<<< HEAD
+            venues = Venue.query.filter(Venue.state == location.state).filter(Venue.city == location.city).all()
+            data.append({'city': location.city, 'state': location.state, 'venues': venues})
+            
+=======
+            venues_in_area = Venue.query.filter(Venue.state == location.state).filter(Venue.city == location.city).all()
+            venues = []
+            for venue in venues_in_area:
+                venues.append({'id': venue.id, 'name': venue.name, 'num_upcoming_shows': 0})
+                
+            data.append({'city': location.city, 'state': location.state, 'venues': venues})
+>>>>>>> 02d19d7b2ca8a4fa674ae9f4698a73f694043922
+>>>>>>> 334895b8991d6274440752012a15d790c766ff4b
     return render_template('pages/venues.html', areas=data)    
 
 @app.route('/venues/search', methods=['POST'])
@@ -222,7 +238,27 @@ def delete_venue(venue_id):
 def artists():
   # FINISHED: replace with real data returned from querying the database
     data = Artist.query.all()
+<<<<<<< HEAD
     return render_template('pages/artists.html', artists=data)
+=======
+<<<<<<< HEAD
+    return render_template('pages/artists.html', artists=data)
+=======
+    # for artist in content:
+    #     data.append({'id': artist.id, 'name': artist.name})
+    return render_template('pages/artists.html', artists=data)
+  # data=[{
+  #   "id": 4,
+  #   "name": "Guns N Petals",
+  # }, {
+  #   "id": 5,
+  #   "name": "Matt Quevedo",
+  # }, {
+  #   "id": 6,
+  #   "name": "The Wild Sax Band",
+  # }]
+>>>>>>> 02d19d7b2ca8a4fa674ae9f4698a73f694043922
+>>>>>>> 334895b8991d6274440752012a15d790c766ff4b
 
 
 @app.route('/artists/search', methods=['POST'])
