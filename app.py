@@ -9,6 +9,7 @@ from flask import Flask, render_template, request, Response, flash, redirect, ur
 from flask_moment import Moment
 from flask_sqlalchemy import SQLAlchemy
 from flask_migrate import Migrate
+# from sqlalchemy import func
 import logging
 from logging import Formatter, FileHandler
 from flask_wtf import Form
@@ -28,6 +29,7 @@ migrate = Migrate(app, db)
 #----------------------------------------------------------------------------#
 # Models.
 #----------------------------------------------------------------------------#
+# association table for many-many relationship between venues and artists
 Shows = db.Table(
     'shows',
     db.Column('id', db.Integer, primary_key=True),
@@ -53,7 +55,7 @@ class Venue(db.Model):
     seeking_description = db.Column(db.String(200))
     shows = db.relationship('Artist', secondary=Shows, backref='venue')
 
-    # TODO: implement any missing fields, as a database migration using Flask-Migrate
+    # FINISHED: implement any missing fields, as a database migration using Flask-Migrate
 
 class Artist(db.Model):
     __tablename__ = 'artists'
@@ -70,9 +72,9 @@ class Artist(db.Model):
     seeking_venue = db.Column(db.Boolean, default=False)
     seeking_description = db.Column(db.String(200))
 
-    # TODO: implement any missing fields, as a database migration using Flask-Migrate
+    # FINISHED: implement any missing fields, as a database migration using Flask-Migrate
 
-# TODO Implement Show and Artist models, and complete all model relationships and properties, as a database migration.
+# FINISHED: Implement Show and Artist models, See model relationships above.
 
 #----------------------------------------------------------------------------#
 # Filters.
@@ -119,7 +121,7 @@ def venues():
                 venue_obj = {
                     'id': venue.id,
                     'name': venue.name,
-                    # upcoming shows filtered by current venue and later than today
+                    # upcoming shows filtered by current venue and shows later than now
                     'num_upcoming_shows': len(db.session.query(Shows).filter(Shows.c.venue_id == venue.id, Shows.c.start_time > datetime.now()).all())
                 }
                 area_obj['venues'].append(venue_obj)
@@ -145,12 +147,44 @@ def search_venues():
 def show_venue(venue_id):
   # shows the venue page with the given venue_id
   # TODO: replace with real venue data from the venues table, using venue_id
-    data = Venue.query.filter_by(id=venue_id).first()
-
+    venue = Venue.query.filter_by(id=venue_id).first()
+    # venue = db.session.query(Venue).filter_by(id=venue_id).first()
+    now = datetime.now()
+    events = db.session.query(Shows).filter(Shows.c.venue_id==venue_id).all()
+    data = {
+        'id': venue.id,
+        'name': venue.name,
+        'genres': venue.genres,
+        'address': venue.address,
+        'city': venue.city,
+        'state': venue.state,
+        'phone': venue.phone,
+        'website': venue.website,
+        'facebook_link': venue.facebook_link,
+        'seeking_talent': venue.seeking_talent,
+        'seeking_description': venue.seeking_description,
+        'image_link': venue.image_link,
+        'upcoming_shows': [],
+        'upcoming_shows_count': 0,
+        'past_shows': [],
+        'past_shows_count': 0
+    }
+    for event in events:
+        artist = Artist.query.filter_by(id=event.artist_id).first()
+        show_obj = {
+            'artist_id': artist.id,
+            'artist_name': artist.name,
+            'artist_image_link': artist.image_link,
+            'start_time': str(event.start_time)
+        }
+        if event.start_time > now:
+            data['upcoming_shows'].append(show_obj)
+        else:
+            data['past_shows'].append(show_obj)
+        data['upcoming_shows_count'] = len(data['upcoming_shows'])
+        data['past_shows_count'] = len(data['past_shows'])
+        
     return render_template('pages/show_venue.html', venue=data)
-
-    
-  # data = list(filter(lambda d: d['id'] == venue_id, [data1, data2, data3]))[0]
 
 
 #  Create Venue
@@ -186,14 +220,15 @@ def delete_venue(venue_id):
 #  ----------------------------------------------------------------
 @app.route('/artists')
 def artists():
-  # TODO: replace with real data returned from querying the database
+  # FINISHED: replace with real data returned from querying the database
     data = Artist.query.all()
     return render_template('pages/artists.html', artists=data)
 
 
 @app.route('/artists/search', methods=['POST'])
 def search_artists():
-  # TODO: implement search on artists with partial string search. Ensure it is case-insensitive.
+  # FINISHED: implement search on artists with partial string search.
+  # Ensure it is case-insensitive.
   # seach for "A" should return "Guns N Petals", "Matt Quevado", and "The Wild Sax Band".
   # search for "band" should return "The Wild Sax Band".
     search_term = request.form.get('search_term', '')
@@ -201,15 +236,6 @@ def search_artists():
     response = {'count': len(data), 'data': data}
     return render_template('pages/search_artists.html', results=response, search_term=request.form.get('search_term', ''))    
     
-  # response={
-  #   "count": 1,
-  #   "data": [{
-  #     "id": 4,
-  #     "name": "Guns N Petals",
-  #     "num_upcoming_shows": 0,
-  #   }]
-  # }
-
 
 @app.route('/artists/<int:artist_id>')
 def show_artist(artist_id):
