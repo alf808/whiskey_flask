@@ -28,6 +28,13 @@ migrate = Migrate(app, db)
 #----------------------------------------------------------------------------#
 # Models.
 #----------------------------------------------------------------------------#
+Shows = db.Table(
+    'shows',
+    db.Column('id', db.Integer, primary_key=True),
+    db.Column('artist_id', db.ForeignKey('artists.id'), nullable=False),
+    db.Column('venue_id', db.ForeignKey('venues.id'), nullable=False),
+    db.Column('start_time', db.DateTime, nullable=False)
+)
 
 class Venue(db.Model):
     __tablename__ = 'venues'
@@ -40,10 +47,11 @@ class Venue(db.Model):
     phone = db.Column(db.String(120))
     image_link = db.Column(db.String(500))
     facebook_link = db.Column(db.String(120))
-    genres = db.Column(db.String(120))
+    genres = db.Column(db.ARRAY(db.String))
     website = db.Column(db.String(120))
     seeking_talent = db.Column(db.Boolean, default=False)
     seeking_description = db.Column(db.String(200))
+    shows = db.relationship('Artist', secondary=Shows, backref='venue')
 
     # TODO: implement any missing fields, as a database migration using Flask-Migrate
 
@@ -103,7 +111,13 @@ def venues():
             venues = Venue.query.filter(Venue.state == location.state).filter(Venue.city == location.city).all()
             data.append({'city': location.city, 'state': location.state, 'venues': venues})
             
-    return render_template('pages/venues.html', areas=data)    
+            venues_in_area = Venue.query.filter(Venue.state == location.state).filter(Venue.city == location.city).all()
+            venues = []
+            for venue in venues_in_area:
+                venues.append({'id': venue.id, 'name': venue.name, 'num_upcoming_shows': 0})
+                
+            data.append({'city': location.city, 'state': location.state, 'venues': venues})
+   return render_template('pages/venues.html', areas=data)    
   # data=[{
   #   "city": "San Francisco",
   #   "state": "CA",
@@ -195,6 +209,19 @@ def artists():
   # TODO: replace with real data returned from querying the database
     data = Artist.query.all()
     return render_template('pages/artists.html', artists=data)
+    # for artist in content:
+    #     data.append({'id': artist.id, 'name': artist.name})
+    return render_template('pages/artists.html', artists=data)
+  # data=[{
+  #   "id": 4,
+  #   "name": "Guns N Petals",
+  # }, {
+  #   "id": 5,
+  #   "name": "Matt Quevedo",
+  # }, {
+  #   "id": 6,
+  #   "name": "The Wild Sax Band",
+  # }]
 
 
 @app.route('/artists/search', methods=['POST'])
