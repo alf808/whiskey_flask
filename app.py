@@ -146,9 +146,8 @@ def search_venues():
 @app.route('/venues/<int:venue_id>')
 def show_venue(venue_id):
   # shows the venue page with the given venue_id
-  # TODO: replace with real venue data from the venues table, using venue_id
+  # FINISHED: replace with real venue data from the venues table, using venue_id
     venue = Venue.query.filter_by(id=venue_id).first()
-    # venue = db.session.query(Venue).filter_by(id=venue_id).first()
     now = datetime.now()
     events = db.session.query(Shows).filter(Shows.c.venue_id==venue_id).all()
     data = {
@@ -240,8 +239,42 @@ def search_artists():
 @app.route('/artists/<int:artist_id>')
 def show_artist(artist_id):
   # shows the artist page with the given artist_id
-  # TODO: replace with real artist data from the artist table, using artist_id
-    data = Artist.query.filter_by(id=artist_id).first()
+  # FINISHED: replace with real artist data from the artist table, using artist_id
+    artist = Artist.query.filter_by(id=artist_id).first()
+    now = datetime.now()
+    gigs = db.session.query(Shows).filter(Shows.c.artist_id==artist_id).all()
+    data = {
+        'id': artist.id,
+        'name': artist.name,
+        'genres': artist.genres,
+        'city': artist.city,
+        'state': artist.state,
+        'phone': artist.phone,
+        'website': artist.website,
+        'facebook_link': artist.facebook_link,
+        'seeking_venue': artist.seeking_venue,
+        'seeking_description': artist.seeking_description,
+        'image_link': artist.image_link,
+        'upcoming_shows': [],
+        'upcoming_shows_count': 0,
+        'past_shows': [],
+        'past_shows_count': 0
+    }
+    for gig in gigs:
+        venue = Venue.query.filter_by(id=gig.venue_id).first()
+        show_obj = {
+            'venue_id': venue.id,
+            'venue_name': venue.name,
+            'venue_image_link': venue.image_link,
+            'start_time': str(gig.start_time)
+        }
+        if gig.start_time > now:
+            data['upcoming_shows'].append(show_obj)
+        else:
+            data['past_shows'].append(show_obj)
+        data['upcoming_shows_count'] = len(data['upcoming_shows'])
+        data['past_shows_count'] = len(data['past_shows'])
+        
     return render_template('pages/show_artist.html', artist=data)
 
   # data = list(filter(lambda d: d['id'] == artist_id, [data1, data2, data3]))[0]
