@@ -107,9 +107,24 @@ def venues():
     data = []
     content = Venue.query.distinct(Venue.city, Venue.state).all()
     if content:
-        for location in content:
-            venues = Venue.query.filter(Venue.state == location.state).filter(Venue.city == location.city).all()
-            data.append({'city': location.city, 'state': location.state, 'venues': venues})
+        for area in content:
+            area_obj = {
+                'city': area.city,
+                'state': area.state,
+                'venues': []
+            }
+            # get all the venues specific to city, state
+            venue_locs = Venue.query.filter(Venue.state == area.state).filter(Venue.city == area.city).all()
+            for venue in venue_locs:
+                venue_obj = {
+                    'id': venue.id,
+                    'name': venue.name,
+                    'num_upcoming_shows': len(db.session.query(Shows).filter(Shows.c.venue_id == venue.id, Shows.c.start_time > datetime.now()).all())
+                }
+                area_obj['venues'].append(venue_obj)
+                
+            data.append(area_obj)
+
             
     return render_template('pages/venues.html', areas=data)    
   # data=[{
@@ -316,51 +331,21 @@ def create_artist_submission():
 def shows():
   # displays list of shows at /shows
   # TODO: replace with real venues data.
+    # db.Table Shows has no query method. Had to use db.session
+    content = db.session.query(Shows).join(Artist).all()
     data = []
-    content = db.session.query(Shows).all()
     for event in content:
+        artist = Artist.query.filter_by(id=event.artist_id).first()
+        venue = Venue.query.filter_by(id=event.venue_id).first()
         data.append({
             'venue_id': event.venue_id,
+            'venue_name': venue.name,
             'artist_id': event.artist_id,
+            'artist_name': artist.name,
+            'artist_image_link': artist.image_link,
             'start_time': str(event.start_time)
         })
     return render_template('pages/shows.html', shows=data)
-  # data=[{
-  #   "venue_id": 1,
-  #   "venue_name": "The Musical Hop",
-  #   "artist_id": 4,
-  #   "artist_name": "Guns N Petals",
-  #   "artist_image_link": "https://images.unsplash.com/photo-1549213783-8284d0336c4f?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=crop&w=300&q=80",
-  #   "start_time": "2019-05-21T21:30:00.000Z"
-  # }, {
-  #   "venue_id": 3,
-  #   "venue_name": "Park Square Live Music & Coffee",
-  #   "artist_id": 5,
-  #   "artist_name": "Matt Quevedo",
-  #   "artist_image_link": "https://images.unsplash.com/photo-1495223153807-b916f75de8c5?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=crop&w=334&q=80",
-  #   "start_time": "2019-06-15T23:00:00.000Z"
-  # }, {
-  #   "venue_id": 3,
-  #   "venue_name": "Park Square Live Music & Coffee",
-  #   "artist_id": 6,
-  #   "artist_name": "The Wild Sax Band",
-  #   "artist_image_link": "https://images.unsplash.com/photo-1558369981-f9ca78462e61?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=crop&w=794&q=80",
-  #   "start_time": "2035-04-01T20:00:00.000Z"
-  # }, {
-  #   "venue_id": 3,
-  #   "venue_name": "Park Square Live Music & Coffee",
-  #   "artist_id": 6,
-  #   "artist_name": "The Wild Sax Band",
-  #   "artist_image_link": "https://images.unsplash.com/photo-1558369981-f9ca78462e61?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=crop&w=794&q=80",
-  #   "start_time": "2035-04-08T20:00:00.000Z"
-  # }, {
-  #   "venue_id": 3,
-  #   "venue_name": "Park Square Live Music & Coffee",
-  #   "artist_id": 6,
-  #   "artist_name": "The Wild Sax Band",
-  #   "artist_image_link": "https://images.unsplash.com/photo-1558369981-f9ca78462e61?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=crop&w=794&q=80",
-  #   "start_time": "2035-04-15T20:00:00.000Z"
-  # }]
 
 
 @app.route('/shows/create')
