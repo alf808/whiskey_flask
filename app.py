@@ -103,7 +103,7 @@ def index():
 @app.route('/venues')
 def venues():
   # FINISHED: replace with real venues data.
-  # num_upcoming_shows based on number of upcoming shows per venue.
+  # FINISHED: num_upcoming_shows based on number of upcoming shows per venue.
     data = []
     content = Venue.query.distinct(Venue.city, Venue.state).all()
     if content:
@@ -119,36 +119,14 @@ def venues():
                 venue_obj = {
                     'id': venue.id,
                     'name': venue.name,
+                    # upcoming shows filtered by current venue and later than today
                     'num_upcoming_shows': len(db.session.query(Shows).filter(Shows.c.venue_id == venue.id, Shows.c.start_time > datetime.now()).all())
                 }
                 area_obj['venues'].append(venue_obj)
                 
             data.append(area_obj)
-
             
     return render_template('pages/venues.html', areas=data)    
-  # data=[{
-  #   "city": "San Francisco",
-  #   "state": "CA",
-  #   "venues": [{
-  #     "id": 1,
-  #     "name": "The Musical Hop",
-  #     "num_upcoming_shows": 0,
-  #   }, {
-  #     "id": 3,
-  #     "name": "Park Square Live Music & Coffee",
-  #     "num_upcoming_shows": 1,
-  #   }]
-  # }, {
-  #   "city": "New York",
-  #   "state": "NY",
-  #   "venues": [{
-  #     "id": 2,
-  #     "name": "The Dueling Pianos Bar",
-  #     "num_upcoming_shows": 0,
-  #   }]
-  # }]
-
 
 @app.route('/venues/search', methods=['POST'])
 def search_venues():
@@ -157,7 +135,17 @@ def search_venues():
   # search for "Music" should return "The Musical Hop" and "Park Square Live Music & Coffee"
     search_term = request.form.get('search_term', '')
     data = Venue.query.filter(Venue.name.ilike(f"%{search_term}%")).all()
+    for obj in data:
+        obj = {
+            'count': len(data)
+            'data': []
+        }
+        for data in obj:
+            
+            
     response = {'count': len(data), 'data': data}
+                    'num_upcoming_shows': len(db.session.query(Shows).filter(Shows.c.venue_id == venue.id, Shows.c.start_time > datetime.now()).all())
+
     return render_template('pages/search_venues.html', results=response, search_term=request.form.get('search_term', ''))
 
   # response={
