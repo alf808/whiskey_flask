@@ -225,6 +225,7 @@ def create_venue_submission():
         'seeking_talent': form.seeking_talent,
         'seeking_description': form.seeking_description
     }
+    
     venue = Venue(**venue_obj)
     try:
         db.session.add(venue)
