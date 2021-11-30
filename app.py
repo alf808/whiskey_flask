@@ -198,16 +198,44 @@ def create_venue_form():
 def create_venue_submission():
   # TODO: insert form data as a new Venue record in the db, instead
   # TODO: modify data to be the data object returned from db insertion
-    # req - request.form
-    # venue = Venue(
-        
-
-  # on successful db insert, flash success
-  flash('Venue ' + request.form['name'] + ' was successfully listed!')
-  # TODO: on unsuccessful db insert, flash an error instead.
-  # e.g., flash('An error occurred. Venue ' + data.name + ' could not be listed.')
-  # see: http://flask.pocoo.org/docs/1.0/patterns/flashing/
-  return render_template('pages/home.html')
+    form = VenueForm()
+    # venue_obj = {
+    #     'name': form.name,
+    #     'city': form.city.data,
+    #     'state': form.state.data,
+    #     'address': form.address.data,
+    #     'phone': form.phone.data,
+    #     'genres': form.genres.data,
+    #     'facebook_link': form.facebook_link.data,
+    #     'image_link': form.image_link.data,
+    #     'website': form.website_link.data,
+    #     'seeking_talent': form.seeking_talent.data,
+    #     'seeking_description': form.seeking_description.data
+    # }
+    venue_obj = {
+        'name': form.name,
+        'city': form.city,
+        'state': form.state,
+        'address': form.address,
+        'phone': form.phone,
+        'genres': form.genres,
+        'facebook_link': form.facebook_link,
+        'image_link': form.image_link,
+        'website': form.website_link,
+        'seeking_talent': form.seeking_talent,
+        'seeking_description': form.seeking_description
+    }
+    venue = Venue(**venue_obj)
+    try:
+        db.session.add(venue)
+        db.session.commit()
+        # on successful db insert, flash success
+        flash('Venue ' + request.form['name'] + ' was successfully listed!')
+    except Exception as e:
+        # TODO: on unsuccessful db insert, flash an error instead.
+        flash(f'An error occurred. Venue {form.name} could not be listed. {e}')
+        # see: http://flask.pocoo.org/docs/1.0/patterns/flashing/
+    return render_template('pages/home.html')
 
 @app.route('/venues/<venue_id>', methods=['DELETE'])
 def delete_venue(venue_id):
@@ -365,7 +393,8 @@ def shows():
   # displays list of shows at /shows
   # FINISHED: replace with real venues data.
     # db.Table Shows has no query method. Had to use db.session
-    content = db.session.query(Shows).join(Artist).all()
+    # content = db.session.query(Shows).join(Artist).all()
+    content = db.session.query(Shows).order_by(Shows.c.start_time.desc()).all()
     data = []
     for event in content:
         artist = Artist.query.filter_by(id=event.artist_id).first()
@@ -391,7 +420,7 @@ def create_shows():
 @app.route('/shows/create', methods=['POST'])
 def create_show_submission():
   # called to create new shows in the db, upon submitting new show listing form
-  # TODO: insert form data as a new Show record in the db, instead
+  # FINISHED: insert form data as a new Show record in the db, instead
     req = request.form
     show_obj = {
         'artist_id': req['artist_id'],
