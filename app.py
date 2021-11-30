@@ -100,7 +100,6 @@ app.jinja_env.filters['datetime'] = format_datetime
 def index():
   return render_template('pages/home.html')
 
-
 #  Venues
 #  ----------------------------------------------------------------
 
@@ -127,9 +126,7 @@ def venues():
                     'num_upcoming_shows': len(db.session.query(Shows).filter(Shows.c.venue_id == venue.id, Shows.c.start_time > datetime.now()).all())
                 }
                 area_obj['venues'].append(venue_obj)
-                
             data.append(area_obj)
-            
     return render_template('pages/venues.html', areas=data)    
 
 @app.route('/venues/search', methods=['POST'])
@@ -141,9 +138,7 @@ def search_venues():
     search_term = request.form.get('search_term', '')
     data = Venue.query.filter(Venue.name.ilike(f"%{search_term}%")).all()
     response = {'count': len(data), 'data': data}
-
     return render_template('pages/search_venues.html', results=response, search_term=request.form.get('search_term', ''))
-
 
 @app.route('/venues/<int:venue_id>')
 def show_venue(venue_id):
@@ -184,9 +179,7 @@ def show_venue(venue_id):
             data['past_shows'].append(show_obj)
         data['upcoming_shows_count'] = len(data['upcoming_shows'])
         data['past_shows_count'] = len(data['past_shows'])
-        
     return render_template('pages/show_venue.html', venue=data)
-
 
 #  Create Venue
 #  ----------------------------------------------------------------
@@ -206,20 +199,19 @@ def create_venue_submission():
     if req['seeking_description']:
         seeking_talent = True
     venue_obj = {
-        'name': req['name'],
-        'city': req['city'],
-        'state': req['state'],
-        'address': req['address'],
-        'phone': req['phone'],
+        'name': req.get('name'),
+        'city': req.get('city'),
+        'state': req.get('state'),
+        'address': req.get('address'),
+        'phone': req.get('phone'),
         'genres': req.getlist('genres'),
-        'facebook_link': req['facebook_link'],
-        'image_link': req['image_link'],
-        'website': req['website_link'],
+        'facebook_link': req.get('facebook_link'),
+        'image_link': req.get('image_link'),
+        'website': req.get('website_link'),
         'seeking_talent': seeking_talent,
-        'seeking_description': req['seeking_description'],
+        'seeking_description': req.get('seeking_description')
     }
     venue = Venue(**venue_obj)
-
     try:
         db.session.add(venue)
         db.session.commit()
@@ -248,7 +240,6 @@ def delete_venue(venue_id):
         db.session.flush()
     finally:
         db.session.close()
-
     # FINISHED: Implement a button to delete a Venue on a Venue Page, have it so that
     # clicking that button delete it from the db then redirect the user to the homepage
     return redirect(url_for('index'))
@@ -273,7 +264,6 @@ def search_artists():
     response = {'count': len(data), 'data': data}
     return render_template('pages/search_artists.html', results=response, search_term=request.form.get('search_term', ''))    
     
-
 @app.route('/artists/<int:artist_id>')
 def show_artist(artist_id):
   # shows the artist page with the given artist_id
@@ -312,14 +302,13 @@ def show_artist(artist_id):
             data['past_shows'].append(show_obj)
         data['upcoming_shows_count'] = len(data['upcoming_shows'])
         data['past_shows_count'] = len(data['past_shows'])
-        
     return render_template('pages/show_artist.html', artist=data)
-
 
 #  Update
 #  ----------------------------------------------------------------
 @app.route('/artists/<int:artist_id>/edit', methods=['GET'])
 def edit_artist(artist_id):
+    # FINISHED: populate form with fields from artist with ID <artist_id>
     form = ArtistForm()
     artist = Artist.query.get(artist_id)
     seeking_venue = False
@@ -338,7 +327,6 @@ def edit_artist(artist_id):
         'seeking_description': artist.seeking_description
     }
     form.process(**artist_obj)
-    # FINISHED: populate form with fields from artist with ID <artist_id>
     return render_template('forms/edit_artist.html', form=form, artist=artist)
 
 @app.route('/artists/<int:artist_id>/edit', methods=['POST'])
@@ -370,12 +358,11 @@ def edit_artist_submission(artist_id):
         flash(f'Something went wrong. {e}')
     finally:
         db.session.close()
-        
     return redirect(url_for('show_artist', artist_id=artist_id))
-
 
 @app.route('/venues/<int:venue_id>/edit', methods=['GET'])
 def edit_venue(venue_id):
+    # FINISHED: populate form with values from venue with ID <venue_id>
     form = VenueForm()
     venue = Venue.query.get(venue_id)
     seeking_talent = False
@@ -395,7 +382,6 @@ def edit_venue(venue_id):
         'seeking_description': venue.seeking_description
     }
     form.process(**venue_obj)
-    # FINISHED: populate form with values from venue with ID <venue_id>
     return render_template('forms/edit_venue.html', form=form, venue=venue)
 
 @app.route('/venues/<int:venue_id>/edit', methods=['POST'])
@@ -430,7 +416,6 @@ def edit_venue_submission(venue_id):
         db.session.close()    
         return redirect(url_for('show_venue', venue_id=venue_id))
 
-
 #  Create Artist
 #  ----------------------------------------------------------------
 
@@ -462,7 +447,6 @@ def create_artist_submission():
         'seeking_description': req.get('seeking_description')
     }
     artist = Artist(**artist_obj)
-
     try:
         db.session.add(artist)
         db.session.commit()
@@ -475,7 +459,6 @@ def create_artist_submission():
         db.session.flush()
     return render_template('pages/home.html')
 
-
 #  Shows
 #  ----------------------------------------------------------------
 
@@ -484,7 +467,6 @@ def shows():
   # displays list of shows at /shows
   # FINISHED: replace with real venues data.
     # db.Table Shows has no query method. Had to use db.session
-    # content = db.session.query(Shows).join(Artist).all()
     content = db.session.query(Shows).order_by(Shows.c.start_time.desc()).all()
     data = []
     for event in content:
@@ -500,13 +482,11 @@ def shows():
         })
     return render_template('pages/shows.html', shows=data)
 
-
 @app.route('/shows/create')
 def create_shows():
   # renders form. do not touch.
   form = ShowForm()
   return render_template('forms/new_show.html', form=form)
-
 
 @app.route('/shows/create', methods=['POST'])
 def create_show_submission():
