@@ -360,7 +360,7 @@ def create_artist_submission():
 @app.route('/shows')
 def shows():
   # displays list of shows at /shows
-  # TODO: replace with real venues data.
+  # FINISHED: replace with real venues data.
     # db.Table Shows has no query method. Had to use db.session
     content = db.session.query(Shows).join(Artist).all()
     data = []
