@@ -1,6 +1,6 @@
 import psycopg2
 
-connection = psycopg2.connect('dbname=fy_t')
+connection = psycopg2.connect('dbname=fyyur')
 
 cursor = connection.cursor()
 
