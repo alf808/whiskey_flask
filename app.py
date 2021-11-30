@@ -53,7 +53,7 @@ class Venue(db.Model):
     website = db.Column(db.String(120))
     seeking_talent = db.Column(db.Boolean, default=False)
     seeking_description = db.Column(db.String(200))
-    shows = db.relationship('Artist', secondary=Shows, backref='venue')
+    shows = db.relationship('Artist', secondary=Shows, backref='venue', cascade='all, delete')
 
     # FINISHED: implement any missing fields, as a database migration using Flask-Migrate
 
@@ -231,14 +231,25 @@ def create_venue_submission():
         # see: http://flask.pocoo.org/docs/1.0/patterns/flashing/
     return render_template('pages/home.html')
 
-@app.route('/venues/<venue_id>', methods=['DELETE'])
+@app.route('/venues/<venue_id>', methods=['POST', 'DELETE'])
 def delete_venue(venue_id):
-  # TODO: Complete this endpoint for taking a venue_id, and using
+  # FINISHED: Complete this endpoint for taking a venue_id, and using
   # SQLAlchemy ORM to delete a record. Handle cases where the session commit could fail.
+    try:
+        venue = Venue.query.get(venue_id)
+        db.session.delete(venue)
+        db.session.commit()
+        flash(f'The venue and its associated events were successfully deleted.')
+    except Exception as e:
+        flash(f'An error occurred. Venue {req["name"]} could not be deleted. {e}')
+        db.session.rollback()
+        db.session.flush()
+    finally:
+        db.session.close()
 
-  # BONUS CHALLENGE: Implement a button to delete a Venue on a Venue Page, have it so that
-  # clicking that button delete it from the db then redirect the user to the homepage
-  return None
+    # FINISHED: Implement a button to delete a Venue on a Venue Page, have it so that
+    # clicking that button delete it from the db then redirect the user to the homepage
+    return redirect(url_for('index'))
 
 #  Artists
 #  ----------------------------------------------------------------
@@ -302,7 +313,6 @@ def show_artist(artist_id):
         
     return render_template('pages/show_artist.html', artist=data)
 
-  # data = list(filter(lambda d: d['id'] == artist_id, [data1, data2, data3]))[0]
 
 #  Update
 #  ----------------------------------------------------------------
@@ -357,6 +367,7 @@ def edit_venue_submission(venue_id):
   # TODO: take values from the form submitted, and update existing
   # venue record with ID <venue_id> using the new attributes
   return redirect(url_for('show_venue', venue_id=venue_id))
+
 
 #  Create Artist
 #  ----------------------------------------------------------------
