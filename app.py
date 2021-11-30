@@ -196,45 +196,38 @@ def create_venue_form():
 
 @app.route('/venues/create', methods=['POST'])
 def create_venue_submission():
-  # TODO: insert form data as a new Venue record in the db, instead
-  # TODO: modify data to be the data object returned from db insertion
-    form = VenueForm()
-    # venue_obj = {
-    #     'name': form.name,
-    #     'city': form.city.data,
-    #     'state': form.state.data,
-    #     'address': form.address.data,
-    #     'phone': form.phone.data,
-    #     'genres': form.genres.data,
-    #     'facebook_link': form.facebook_link.data,
-    #     'image_link': form.image_link.data,
-    #     'website': form.website_link.data,
-    #     'seeking_talent': form.seeking_talent.data,
-    #     'seeking_description': form.seeking_description.data
-    # }
+  # FINISHED: insert form data as a new Venue record in the db, instead
+  # FINISHED: modify data to be the data object returned from db insertion
+    req = request.form
+    vform = VenueForm(req)
+    seeking_talent = False
+    if req['seeking_description']:
+        seeking_talent = True
     venue_obj = {
-        'name': form.name,
-        'city': form.city,
-        'state': form.state,
-        'address': form.address,
-        'phone': form.phone,
-        'genres': form.genres,
-        'facebook_link': form.facebook_link,
-        'image_link': form.image_link,
-        'website': form.website_link,
-        'seeking_talent': form.seeking_talent,
-        'seeking_description': form.seeking_description
+        'name': req['name'],
+        'city': req['city'],
+        'state': req['state'],
+        'address': req['address'],
+        'phone': req['phone'],
+        'genres': req.getlist('genres'),
+        'facebook_link': req['facebook_link'],
+        'image_link': req['image_link'],
+        'website': req['website_link'],
+        'seeking_talent': seeking_talent,
+        'seeking_description': req['seeking_description'],
     }
-    
     venue = Venue(**venue_obj)
+
     try:
         db.session.add(venue)
         db.session.commit()
         # on successful db insert, flash success
-        flash('Venue ' + request.form['name'] + ' was successfully listed!')
+        flash(f'Venue {req["name"]} was successfully listed!')
     except Exception as e:
         # TODO: on unsuccessful db insert, flash an error instead.
-        flash(f'An error occurred. Venue {form.name} could not be listed. {e}')
+        flash(f'An error occurred. Venue {req["name"]} could not be listed. {e}')
+        db.session.rollback()
+        db.session.flush()
         # see: http://flask.pocoo.org/docs/1.0/patterns/flashing/
     return render_template('pages/home.html')
 
