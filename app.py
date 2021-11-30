@@ -387,19 +387,20 @@ def create_shows():
   form = ShowForm()
   return render_template('forms/new_show.html', form=form)
 
+
 @app.route('/shows/create', methods=['POST'])
 def create_show_submission():
   # called to create new shows in the db, upon submitting new show listing form
   # TODO: insert form data as a new Show record in the db, instead
-    form = ShowForm()
+    req = request.form
     show_obj = {
-        'artist_id': form.artist_id,
-        'venue_id': form.venue_id,
-        'start_time': form.start_time
+        'artist_id': req['artist_id'],
+        'venue_id': req['venue_id'],
+        'start_time': req['start_time']
     }
-    show = Shows.insert(show_obj)
+    show = Shows.insert().values(**show_obj)
     try:
-        db.session.add(show)
+        db.session.execute(show)
         db.session.commit()
         # on successful db insert, flash success
         flash('Show was successfully listed!')
