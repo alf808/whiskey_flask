@@ -395,20 +395,20 @@ def edit_venue(venue_id):
         'seeking_description': venue.seeking_description
     }
     form.process(**venue_obj)
-    # TODO: populate form with values from venue with ID <venue_id>
+    # FINISHED: populate form with values from venue with ID <venue_id>
     return render_template('forms/edit_venue.html', form=form, venue=venue)
 
 @app.route('/venues/<int:venue_id>/edit', methods=['POST'])
 def edit_venue_submission(venue_id):
-  # TODO: take values from the form submitted, and update existing
+  # FINISHED: take values from the form submitted, and update existing
   # venue record with ID <venue_id> using the new attributes
     req = request.form
     form = VenueForm(req)
     try:
         venue = Venue.query.get(venue_id)
-        seeking_venue = False
+        seeking_talent = False
         if req['seeking_talent']:
-            seeking_venue = True
+            seeking_talent = True
         venue.name = req.get('name')
         venue.genres = req.getlist('genres')
         venue.address = req.get('address')
@@ -418,7 +418,7 @@ def edit_venue_submission(venue_id):
         venue.image_link = req.get('image_link')
         venue.website = req.get('website_link')
         venue.facebook_link = req.get('facebook_link')
-        venue.seeking_venue = seeking_venue
+        venue.seeking_talent = seeking_talent
         venue.seeking_description = req.get('seeking_description')
         db.session.commit()
         flash(f'Venue {venue.name} or {req["name"]} successfully updated')
