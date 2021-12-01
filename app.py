@@ -97,7 +97,7 @@ def show_venue(venue_id):
   # FINISHED: replace with real venue data from the venues table, using venue_id
     venue = Venue.query.get(venue_id)
     now = datetime.now()
-    events = db.session.query(Shows).filter(Shows.c.venue_id==venue_id).all()
+    events = db.session.query(Shows).join(Artist).filter(Shows.c.venue_id==venue_id).add_columns(Artist.name.label('artist_name'), Artist.image_link.label('image_link')).all()
     data = {
         'id': venue.id,
         'name': venue.name,
@@ -117,11 +117,10 @@ def show_venue(venue_id):
         'past_shows_count': 0
     }
     for event in events:
-        artist = Artist.query.get(event.artist_id)
         show_obj = {
-            'artist_id': artist.id,
-            'artist_name': artist.name,
-            'artist_image_link': artist.image_link,
+            'artist_id': event.id,
+            'artist_name': event.artist_name,
+            'artist_image_link': event.image_link,
             'start_time': str(event.start_time)
         }
         if event.start_time > now:
@@ -130,6 +129,7 @@ def show_venue(venue_id):
             data['past_shows'].append(show_obj)
         data['upcoming_shows_count'] = len(data['upcoming_shows'])
         data['past_shows_count'] = len(data['past_shows'])
+
     return render_template('pages/show_venue.html', venue=data)
 
 #  Create Venue
