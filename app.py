@@ -12,6 +12,7 @@ from flask_migrate import Migrate
 import logging
 from logging import Formatter, FileHandler
 from flask_wtf import Form
+from wtforms.validators import ValidationError
 from forms import *
 from models import Shows, Venue, Artist, app, db
 
@@ -144,7 +145,7 @@ def create_venue_submission():
   # FINISHED: insert form data as a new Venue record in the db, instead
   # FINISHED: modify data to be the data object returned from db insertion
     req = request.form
-    vform = VenueForm(req)
+    form = VenueForm(req)
     seeking_talent = False
     if req['seeking_description']:
         seeking_talent = True
@@ -163,10 +164,17 @@ def create_venue_submission():
     }
     venue = Venue(**venue_obj)
     try:
+        if not form.validate():
+            flash(f'Please fix: {form.errors}')
+            raise ValidationError('Please correct invalid entries')
         db.session.add(venue)
         db.session.commit()
         # on successful db insert, flash success
         flash(f'Venue {req["name"]} was successfully listed!')
+    except ValidationError as ve:
+        flash(f'{ve}')
+        db.session.rollback()
+        return redirect(url_for('create_venue_submission'))
     except Exception as e:
         # TODO: on unsuccessful db insert, flash an error instead.
         flash(f'An error occurred. Venue {req["name"]} could not be listed. {e}')
@@ -381,6 +389,7 @@ def create_artist_submission():
   # FINISHED: modify data to be the data object returned from db insertion
     req = request.form
     form = ArtistForm(req)
+        # return redirect(url_for('create_artist_form'))
     seeking_venue = False
     if req['seeking_description']:
         seeking_venue = True
@@ -398,15 +407,25 @@ def create_artist_submission():
     }
     artist = Artist(**artist_obj)
     try:
+        if not form.validate():
+            flash(f'Please fix {form.errors}')
+            raise ValidationError('Please fix invalid entries')
+
         db.session.add(artist)
         db.session.commit()
         # on successful db insert, flash success
         flash(f'Artist {req["name"]} was successfully listed!')
+    except ValidationError as ve:
+        flash(f'{ve}')
+        db.session.rollback()
+        return redirect(url_for('create_artist_form'))
     except Exception as e:
         # TODO: on unsuccessful db insert, flash an error instead.
         flash(f'An error occurred. Artist {req["name"]} could not be listed. {e}')
         db.session.rollback()
         db.session.flush()
+    finally:
+        db.session.close()
     return render_template('pages/home.html')
 
 #  Shows
